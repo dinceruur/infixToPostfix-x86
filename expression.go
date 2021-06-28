@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"strings"
 )
@@ -37,6 +38,38 @@ func HasHigherPrecedence(op1 string, op2 string) bool {
 	return op1Weight >= op2Weight
 }
 
+// writeOperation
+func writeOperation(s string, w io.Writer) {
+	switch s {
+	case "*":
+		_, _ = w.Write([]byte("pop ax \n"))
+		_, _ = w.Write([]byte("pop cx \n"))
+		_, _ = w.Write([]byte("mul cx \n"))
+		_, _ = w.Write([]byte("push ax \n"))
+	case "+":
+		_, _ = w.Write([]byte("pop ax \n"))
+		_, _ = w.Write([]byte("pop cx \n"))
+		_, _ = w.Write([]byte("add ax,cx \n"))
+		_, _ = w.Write([]byte("push ax \n"))
+	case "-":
+		_, _ = w.Write([]byte("pop ax \n"))
+		_, _ = w.Write([]byte("pop cx \n"))
+		_, _ = w.Write([]byte("sub ax,cx \n"))
+		_, _ = w.Write([]byte("push ax \n"))
+	case "/":
+		_, _ = w.Write([]byte("pop ax \n"))
+		_, _ = w.Write([]byte("pop cx \n"))
+		_, _ = w.Write([]byte("mul cx \n"))
+		_, _ = w.Write([]byte("push ax \n"))
+	}
+}
+
+// writeOperand
+func writeOperand(s string, w io.Writer){
+	statement := fmt.Sprintf("push %s \n", s)
+	_, _ = w.Write([]byte(statement))
+}
+
 // ToPostfix converts the given infix notation to the postfix notation.
 func ToPostfix(s string, w io.Writer) string {
 
@@ -64,9 +97,9 @@ func ToPostfix(s string, w io.Writer) string {
 				}
 				postfix += " " + str
 
-				stack.Pop()
-				_, _ = w.Write([]byte(str))
+				writeOperation(str, w)
 
+				stack.Pop()
 			}
 			stack.Pop()
 		} else if !IsOperator(s[i]) {
@@ -79,7 +112,7 @@ func ToPostfix(s string, w io.Writer) string {
 			}
 			postfix += " " + number
 
-			_, _ = w.Write([]byte(number))
+			writeOperand(number,w)
 
 			i = j - 1
 		} else {
@@ -92,21 +125,21 @@ func ToPostfix(s string, w io.Writer) string {
 				}
 				postfix += " " + top
 
-				_, _ = w.Write([]byte(top))
+				writeOperation(top, w)
 
 				stack.Pop()
 			}
+
 			stack.Push(char)
 		}
 	}
 
 	for !stack.Empty() {
 		str := stack.Pop()
-		_, _ = w.Write([]byte(str))
 		postfix += " " + str
+
+		writeOperation(str, w)
 	}
-
-
 
 	return strings.TrimSpace(postfix)
 }

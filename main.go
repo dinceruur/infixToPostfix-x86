@@ -29,10 +29,10 @@ func main() {
 	s, err := reader.ReadString('\n')
 	handleError(err)
 
-	// Trim spaces in the read input
+	// Trim spaces in the read string
 	s = strings.TrimSpace(s)
 
-	// Creating the file postfix.asm in the current directory with mode 0666.
+	// Creating the file postfix.asm in the current directory with mode 0666 (default).
 	f, err := os.Create("postfix.asm")
 	handleError(err)
 
@@ -40,14 +40,9 @@ func main() {
 	// defer postpones the function call until the covering function returns.
 	defer func() {
 		if err := f.Close(); err != nil {
-			panic(err)
+			handleError(err)
 		}
 	}()
-
-	// Creating a buffered writer.
-
-	commentLine := fmt.Sprintf("; the given infix notation is: %s", s)
-	f.Write([]byte(commentLine))
 
 	p := ToPostfix(s, f)
 
