@@ -13,7 +13,7 @@ func IsOperator(c uint8) bool {
 
 // IsOperand checks if the given character is operand
 func IsOperand(c uint8) bool {
-	return c >= '0' && c <= '9'
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')
 }
 
 // GetOperatorWeight returns the weight of the operation.
@@ -42,32 +42,43 @@ func HasHigherPrecedence(op1 string, op2 string) bool {
 func writeOperation(s string, w io.Writer) {
 	switch s {
 	case "*":
-		_, _ = w.Write([]byte("pop ax \n"))
-		_, _ = w.Write([]byte("pop cx \n"))
-		_, _ = w.Write([]byte("mul cx \n"))
-		_, _ = w.Write([]byte("push ax \n"))
+		_, _ = w.Write([]byte("pop ax\n"))
+		_, _ = w.Write([]byte("pop cx\n"))
+		_, _ = w.Write([]byte("mul cx\n"))
+		_, _ = w.Write([]byte("push ax\n"))
 	case "+":
-		_, _ = w.Write([]byte("pop ax \n"))
-		_, _ = w.Write([]byte("pop cx \n"))
-		_, _ = w.Write([]byte("add ax,cx \n"))
-		_, _ = w.Write([]byte("push ax \n"))
+		_, _ = w.Write([]byte("pop ax\n"))
+		_, _ = w.Write([]byte("pop cx\n"))
+		_, _ = w.Write([]byte("add ax,cx\n"))
+		_, _ = w.Write([]byte("push ax\n"))
 	case "-":
-		_, _ = w.Write([]byte("pop ax \n"))
-		_, _ = w.Write([]byte("pop cx \n"))
-		_, _ = w.Write([]byte("sub ax,cx \n"))
-		_, _ = w.Write([]byte("push ax \n"))
+		_, _ = w.Write([]byte("pop ax\n"))
+		_, _ = w.Write([]byte("pop cx\n"))
+		_, _ = w.Write([]byte("sub ax,cx\n"))
+		_, _ = w.Write([]byte("push ax\n"))
 	case "/":
-		_, _ = w.Write([]byte("pop ax \n"))
-		_, _ = w.Write([]byte("pop cx \n"))
-		_, _ = w.Write([]byte("mul cx \n"))
-		_, _ = w.Write([]byte("push ax \n"))
+		_, _ = w.Write([]byte("pop ax\n"))
+		_, _ = w.Write([]byte("pop cx\n"))
+		_, _ = w.Write([]byte("mul cx\n"))
+		_, _ = w.Write([]byte("push ax\n"))
 	}
 }
 
 // writeOperand
 func writeOperand(s string, w io.Writer){
-	statement := fmt.Sprintf("push %s \n", s)
+	statement := fmt.Sprintf("push 0%sh\n", s)
 	_, _ = w.Write([]byte(statement))
+}
+
+// writeStatement
+func writeBlock(s string, w io.Writer){
+	_, _ = w.Write([]byte(s))
+}
+
+// writeStatement
+func writeComment(s string, w io.Writer){
+	comment := fmt.Sprintf("; %s\n", s)
+	_, _ = w.Write([]byte(comment))
 }
 
 // ToPostfix converts the given infix notation to the postfix notation.
@@ -78,6 +89,9 @@ func ToPostfix(s string, w io.Writer) string {
 	postfix := ""
 
 	length := len(s)
+
+	writeComment(fmt.Sprintf("infix notation is: %s", s),w)
+	writeBlock("code segment\n", w)
 
 	for i := 0; i < length; i++ {
 
@@ -140,6 +154,9 @@ func ToPostfix(s string, w io.Writer) string {
 
 		writeOperation(str, w)
 	}
+
+	writeBlock("code ends\n", w)
+	writeComment(fmt.Sprintf("postfix notation is: %s", postfix),w)
 
 	return strings.TrimSpace(postfix)
 }
